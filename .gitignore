@@ -1,0 +1,16 @@
+
+# Node
+node_modules/
+.env
+npm-debug.log
+yarn-error.log
+dist/
+build/
+.vscode/
+
+# Flutter
+**/build/
+**/ios/Flutter/Flutter.framework/
+
+# System
+.DS_Store
