@@ -1,0 +1,412 @@
+
+openapi: 3.0.0
+info:
+  title: AI Affiliate Product Content Creator Hub API
+  version: 1.0.0
+  description: REST API for managing users, articles, affiliate links, AI generation, media, and analytics.
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local development
+  - url: https://yourproject.onrender.com/api/v1
+    description: Production (Render)
+
+paths:
+  /auth/register:
+    post:
+      tags: ["Auth"]
+      summary: Register new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+                password: { type: string }
+                name: { type: string }
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /auth/login:
+    post:
+      tags: ["Auth"]
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        "200":
+          description: Tokens and user profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken: { type: string }
+                  refreshToken: { type: string }
+                  user:
+                    $ref: "#/components/schemas/User"
+
+  /auth/refresh:
+    post:
+      tags: ["Auth"]
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken: { type: string }
+      responses:
+        "200":
+          description: New access token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken: { type: string }
+
+  /users/me:
+    get:
+      tags: ["Users"]
+      summary: Get current user profile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /articles:
+    get:
+      tags: ["Articles"]
+      summary: List articles
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer }
+        - name: limit
+          in: query
+          schema: { type: integer }
+        - name: status
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: List of articles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Article"
+    post:
+      tags: ["Articles"]
+      summary: Create article
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArticleInput"
+      responses:
+        "201":
+          description: Created article
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Article"
+
+  /articles/{id}:
+    get:
+      tags: ["Articles"]
+      summary: Get article detail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Article detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Article"
+    put:
+      tags: ["Articles"]
+      summary: Update article
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArticleInput"
+      responses:
+        "200":
+          description: Updated article
+    delete:
+      tags: ["Articles"]
+      summary: Delete article
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Deleted
+
+  /articles/{id}/publish:
+    post:
+      tags: ["Articles"]
+      summary: Publish article
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Published article
+
+  /articles/{id}/generate:
+    post:
+      tags: ["Articles"]
+      summary: Generate article body via AI
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                prompt: { type: string }
+                model: { type: string }
+      responses:
+        "202":
+          description: AI job created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AIJob"
+
+  /articles/{id}/caption:
+    post:
+      tags: ["Articles"]
+      summary: Generate caption for article
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "201":
+          description: Caption created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Caption"
+
+  /affiliate:
+    post:
+      tags: ["Affiliate"]
+      summary: Create affiliate link
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                productUrl: { type: string }
+      responses:
+        "201":
+          description: Created link
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AffiliateLink"
+
+  /affiliate/{id}:
+    get:
+      tags: ["Affiliate"]
+      summary: Get affiliate link details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Affiliate link
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AffiliateLink"
+
+  /track/click:
+    post:
+      summary: Track affiliate click
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                affiliateLinkId: { type: integer }
+                referrer: { type: string }
+      responses:
+        "200":
+          description: Click recorded
+
+  /media/upload:
+    post:
+      summary: Upload media
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: Uploaded file
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaAsset"
+
+  /analytics/articles/{id}:
+    get:
+      summary: Get analytics for article
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Article analytics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  views: { type: integer }
+                  clicks: { type: integer }
+                  ctr: { type: number }
+
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        id: { type: integer }
+        email: { type: string }
+        name: { type: string }
+        role: { type: string }
+    Article:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        slug: { type: string }
+        body: { type: string }
+        status: { type: string }
+        publishedAt: { type: string, format: date-time }
+    ArticleInput:
+      type: object
+      properties:
+        title: { type: string }
+        body: { type: string }
+        affiliateLinkId: { type: integer }
+    AffiliateLink:
+      type: object
+      properties:
+        id: { type: integer }
+        productUrl: { type: string }
+        shortUrl: { type: string }
+        clicks: { type: integer }
+    Caption:
+      type: object
+      properties:
+        id: { type: integer }
+        text: { type: string }
+    AIJob:
+      type: object
+      properties:
+        id: { type: integer }
+        type: { type: string }
+        status: { type: string }
+        prompt: { type: string }
+        result: { type: string }
+    MediaAsset:
+      type: object
+      properties:
+        id: { type: integer }
+        url: { type: string }
+        filename: { type: string }
+        mimeType: { type: string }
