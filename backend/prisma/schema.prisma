@@ -15,20 +15,100 @@ datasource db {
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
-  email     String    @unique
+  id        Int          @id @default(autoincrement())
+  email     String       @unique
   password  String
-  createdAt DateTime  @default(now())
+  name      String?
+  role      Role         @default(USER)
   articles  Article[]
+  media     MediaAsset[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+enum Role {
+  USER
+  ADMIN
 }
 
 model Article {
+  id              Int            @id @default(autoincrement())
+  title           String
+  slug            String         @unique
+  body            String?
+  status          ArticleStatus  @default(DRAFT)
+  authorId        Int
+  author          User           @relation(fields: [authorId], references: [id])
+  affiliateLinkId Int?
+  affiliateLink   AffiliateLink? @relation(fields: [affiliateLinkId], references: [id])
+  captions        Caption[]
+  aiJobs          AIJob[]
+  publishedAt     DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model AffiliateLink {
+  id         Int          @id @default(autoincrement())
+  productUrl String
+  shortUrl   String       @unique
+  clicks     Int          @default(0)
+  articles   Article[]
+  events     ClickEvent[]
+  createdAt  DateTime     @default(now())
+}
+
+model Caption {
   id        Int      @id @default(autoincrement())
-  title     String
-  slug      String   @unique
-  content   String
-  published Boolean  @default(false)
-  authorId  Int
-  author    User     @relation(fields: [authorId], references: [id])
+  articleId Int
+  article   Article  @relation(fields: [articleId], references: [id])
+  text      String
   createdAt DateTime @default(now())
+}
+
+model AIJob {
+  id        Int         @id @default(autoincrement())
+  type      String
+  prompt    String?
+  status    AIJobStatus @default(PENDING)
+  result    String?
+  articleId Int?
+  article   Article?    @relation(fields: [articleId], references: [id])
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+enum AIJobStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+}
+
+model ClickEvent {
+  id              Int           @id @default(autoincrement())
+  affiliateLinkId Int
+  affiliateLink   AffiliateLink @relation(fields: [affiliateLinkId], references: [id])
+  ip              String?
+  userAgent       String?
+  referrer        String?
+  createdAt       DateTime      @default(now())
+}
+
+model MediaAsset {
+  id           Int      @id @default(autoincrement())
+  filename     String
+  key          String
+  url          String
+  mimeType     String
+  size         Int
+  uploadedById Int?
+  uploadedBy   User?    @relation(fields: [uploadedById], references: [id])
+  createdAt    DateTime @default(now())
 }

@@ -1,26 +1,15 @@
-import express, { Request, Response } from "express";
+import express from "express";
 import cors from "cors";
-import prismaClient from "./prisma-client";
+import routes from "./routes/index";
+import { errorHandler } from "./middlewares/errorHandler";
 
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 
-// Simple Route
-app.get("/", (req: Request, res: Response) => {
-  res.json({ message: "Backend running..." });
-});
+app.use("/api", routes);
 
-app.get("/health", async (req: Request, res: Response) => {
-  try {
-    await prismaClient.$connect();
-    res.json({ status: "ok", db: "connected" });
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error("DB error:", error.message);
-    }
-    res.status(500).json({ status: "error", db: "disconnected" });
-  }
-});
+app.use(errorHandler);
 
 export default app;
