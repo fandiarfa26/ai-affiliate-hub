@@ -9,7 +9,7 @@ export default {
     ...tsJestTransformCfg,
   },
   testMatch: ["**/tests/**/*.test.ts", "**/tests/**/*.spec.ts"],
-  collectCoverage: true,
+  collectCoverage: false,
   collectCoverageFrom: ["src/**/*.ts", "!src/index.ts"],
   coverageReporters: ["text", "lcov"],
 };

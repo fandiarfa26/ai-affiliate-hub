@@ -1,7 +1,8 @@
-export interface Article {
-  id: string;
+export interface CreateArticleDTO {
   title: string;
-  body: string;
-  createdAt: Date;
-  updatedAt: Date;
+  body?: string | null;
+  status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+  affiliateLinkId?: number | null;
+  captions?: { text: string }[];
+  slug?: string;
 }
