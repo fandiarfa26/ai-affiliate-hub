@@ -1,6 +1,6 @@
 import { articleRepository } from "./article.repository";
 import prisma from "../../config/prisma";
-import { CreateArticleDTO } from "./article.types";
+import { CreateArticleDTO, UpdateArticleDTO } from "./article.types";
 
 function slugifyTitle(t: string) {
   return t
@@ -39,5 +39,37 @@ export const articleService = {
       throw err;
     }
     return article;
+  },
+  update: async (id: number, dto: UpdateArticleDTO) => {
+    const article = await articleRepository.findById(id);
+    if (!article) {
+      const err: any = new Error("Article not found");
+      err.status = 404;
+      throw err;
+    }
+    const data: UpdateArticleDTO = {};
+    if (dto.title) {
+      data.title = dto.title;
+    }
+    if (dto.body) {
+      data.body = dto.body;
+    }
+    if (dto.status) {
+      data.status = dto.status;
+    }
+    if (dto.affiliateLinkId) {
+      data.affiliateLinkId = dto.affiliateLinkId;
+    }
+
+    return articleRepository.update(id, data);
+  },
+  delete: async (id: number) => {
+    const article = await articleRepository.findById(id);
+    if (!article) {
+      const err: any = new Error("Article not found");
+      err.status = 404;
+      throw err;
+    }
+    return articleRepository.delete(id);
   },
 };

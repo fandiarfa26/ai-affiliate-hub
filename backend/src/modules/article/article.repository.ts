@@ -1,5 +1,5 @@
 import prisma from "../../config/prisma";
-import { CreateArticleDTO } from "./article.types";
+import { CreateArticleDTO, UpdateArticleDTO } from "./article.types";
 
 export const articleRepository = {
   findAll: () => {
@@ -27,6 +27,36 @@ export const articleRepository = {
   },
   findById: (id: number) => {
     return prisma.article.findUnique({
+      where: { id },
+      include: {
+        captions: true,
+        affiliateLink: true,
+      },
+    });
+  },
+  update: (id: number, data: UpdateArticleDTO) => {
+    return prisma.article.update({
+      where: { id },
+      data: {
+        title: data.title,
+        body: data.body ?? null,
+        status: data.status ?? "DRAFT",
+        affiliateLinkId: data.affiliateLinkId ?? null,
+        authorId: 1,
+        captions:
+          data.captions && data.captions.length
+            ? { create: data.captions }
+            : undefined,
+        publishedAt: data.status === "PUBLISHED" ? new Date() : null,
+      },
+      include: {
+        captions: true,
+        affiliateLink: true,
+      },
+    });
+  },
+  delete: (id: number) => {
+    return prisma.article.delete({
       where: { id },
       include: {
         captions: true,
