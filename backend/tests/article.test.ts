@@ -62,6 +62,15 @@ describe("POST /api/articles", () => {
     expect(result.status).toBe(201);
     expect(result.body.data).toHaveProperty("title", "Test Article");
   });
+
+  it("should return 400 if title is not provided", async () => {
+    const result = await supertest(app).post("/api/articles").send({
+      body: "Ini artikel dummy untuk testing endpoint POST /articles",
+      status: "PUBLISHED",
+    });
+
+    expect(result.status).toBe(400);
+  });
 });
 
 describe("GET /api/articles/:id", () => {
@@ -126,6 +135,13 @@ describe("PUT /api/articles/:id", () => {
     const result = await supertest(app).put(`/api/articles/${id}`).send({
       title: "Test Article Updated",
     });
+    expect(result.status).toBe(400);
+  });
+
+  it("should return 400 if payload is empty", async () => {
+    const article = await getTestArticle();
+    const id = article?.id ?? 1;
+    const result = await supertest(app).put(`/api/articles/${id}`).send({});
     expect(result.status).toBe(400);
   });
 });
