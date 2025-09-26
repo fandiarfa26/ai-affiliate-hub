@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import prisma from "../config/prisma";
 import articleRoute from "../modules/article/article.route";
+import authRoute from "../modules/auth/auth.route";
 
 const router = Router();
 
@@ -21,6 +22,7 @@ router.get("/health", async (req: Request, res: Response) => {
   }
 });
 
+router.use("/auth", authRoute);
 router.use("/articles", articleRoute);
 
 export default router;
