@@ -14,3 +14,8 @@ build/
 
 # System
 .DS_Store
+
+# Flask
+venv/
+__pycache__/
+*.pyc
